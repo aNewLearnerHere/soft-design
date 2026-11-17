@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软装设计台 · 家具搭配 3D 预览</title>
+<link rel="stylesheet" href="css/style.css?v=20261111n">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛋️</text></svg>">
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">🛋️ 软装设计台</div>
+
+  <div class="seg" id="viewSwitch">
+    <button id="btn2d" class="seg-btn active">2D 平面摆放</button>
+    <button id="btn3d" class="seg-btn">3D 实景查看</button>
+  </div>
+
+  <!-- 2D 工具组 -->
+  <div class="seg" id="modeGroup">
+    <button class="tool-btn active" data-mode="select" title="选择/移动家具 (V)">🖱️ 选择</button>
+    <button class="tool-btn" data-mode="wall" title="点击画墙，连笔画墙，Esc 结束 (W)">🧱 画墙</button>
+    <button class="tool-btn" data-mode="door" title="点击墙体放置门 (D)">🚪 门</button>
+    <button class="tool-btn" data-mode="window" title="点击墙体放置窗 (O)">🪟 窗</button>
+    <button class="tool-btn" data-mode="erase" title="点击删除墙/门/窗/家具 (E)">🗑️ 删除</button>
+    <button class="tool-btn" data-mode="calibrate" title="底图标定：点两点并输入真实距离">📏 标定</button>
+  </div>
+
+  <!-- 2D 标注开关 -->
+  <div class="seg" id="dimGroup">
+    <button class="tool-btn active" id="btnDims" title="选中家具时显示自身尺寸与到四面墙的净距 (M)">📐 间距标注</button>
+  </div>
+
+  <!-- 3D 墙体显示 -->
+  <div class="seg hidden" id="wallGroup">
+    <button class="tool-btn" id="btnWall" title="墙体显示方式：实心 2.7m 全高 / 近侧墙半透 / 近侧墙隐藏">🧱 实心</button>
+  </div>
+
+  <!-- 3D 视角组 -->
+  <div class="seg hidden" id="view3dGroup">
+    <button class="tool-btn" data-preset="orbit">🎬 环视</button>
+    <button class="tool-btn" data-preset="top">🗺️ 俯视</button>
+    <button class="tool-btn" data-preset="walk">🚶 走入</button>
+    <button class="tool-btn" data-preset="pano">🌐 720°全景</button>
+    <button class="tool-btn" data-preset="fp">🎮 第一人称漫游</button>
+    <button class="tool-btn" id="btnStill">📸 高清出图</button>
+  </div>
+
+  <div class="spacer"></div>
+  <button id="btnSave" class="ghost-btn">💾 保存</button>
+  <button id="btnExport" class="ghost-btn">📋 清单</button>
+  <button id="btnClear" class="ghost-btn danger">清空</button>
+</header>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="tabbar">
+      <button class="tab active" data-tab="catalog">🛒 商品库</button>
+      <button class="tab" data-tab="plan">📐 户型</button>
+      <button class="tab" data-tab="saves">🗂 方案</button>
+      <button class="tab" data-tab="help">❓ 帮助</button>
+    </div>
+
+    <!-- 商品库 -->
+    <div class="panel active" id="panel-catalog">
+      <div class="panel-head">
+        <span>点击商品 → 在画布上点击摆放</span>
+      </div>
+      <button id="btnAddProduct" class="primary-btn">＋ 添加商品（填淘宝参数）</button>
+
+      <form id="productForm" class="card hidden">
+        <label>商品名称<input name="name" type="text" placeholder="如：北欧布艺三人沙发" required></label>
+        <label>品类
+          <select name="cat">
+            <option value="sofa">沙发 / 罗汉床</option>
+            <option value="bed">床</option>
+            <option value="table">餐桌 / 书桌 / 茶几</option>
+            <option value="chair">座椅 / 单椅</option>
+            <option value="wardrobe">衣柜</option>
+            <option value="cabinet">柜类 / 床头柜 / 电视柜</option>
+            <option value="shelf">书架 / 置物架</option>
+            <option value="lamp">灯具</option>
+            <option value="rug">地毯</option>
+            <option value="plant">绿植</option>
+            <option value="other">其他</option>
+          </select>
+        </label>
+        <div class="row3">
+          <label>宽(cm)<input name="w" type="number" min="1" max="500" required></label>
+          <label>深(cm)<input name="d" type="number" min="1" max="500" required></label>
+          <label>高(cm)<input name="h" type="number" min="1" max="300" required></label>
+        </div>
+        <label>价格(元)<input name="price" type="number" min="0" step="0.01" placeholder="选填"></label>
+        <label>商品图（自动提取主色）
+          <input name="img" type="file" accept="image/*">
+        </label>
+        <div class="row3">
+          <label>颜色<input name="color" type="color" value="#c8b6a6"></label>
+          <label>材质
+            <select name="mat">
+              <option value="fabric">布艺</option>
+              <option value="leather">皮质</option>
+              <option value="wood">木质</option>
+              <option value="metal">金属</option>
+            </select>
+          </label>
+        </div>
+        <div id="formPreview" class="img-preview hidden"></div>
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">保存商品</button>
+          <button type="button" id="btnCancelProduct" class="ghost-btn">取消</button>
+        </div>
+      </form>
+
+      <input id="catalogSearch" type="text" placeholder="🔍 搜索商品名">
+      <div id="catalogList"></div>
+    </div>
+
+    <!-- 户型 -->
+    <div class="panel" id="panel-plan">
+      <div class="panel-head">① 上传户型图 · 自动识别墙体</div>
+      <label class="card file-card" id="dropZone">
+        <b>📁 选择户型图</b>（也可以直接把图片拖进画布）
+        <input id="underlayInput" type="file" accept="image/*">
+      </label>
+
+      <div class="card trace-card" id="traceBox" style="display:none">
+        <div class="trace-stat" id="traceStat"></div>
+        <div class="inline-field">
+          <span>户型总宽</span>
+          <input id="traceWidth" type="number" min="2" max="60" step="0.01" value="10">
+          <span>米</span>
+          <button id="btnTrace" class="mini-btn">重新识别</button>
+        </div>
+        <div class="tip-mini">填图上标注的尺寸合计（例：顶部 1160+2940+2740+1800+1500＝10140mm，就填 10.14）。填错只影响整体大小，家具与房间的比例始终正确。</div>
+        <label class="check-line"><input id="showUnderlay" type="checkbox" checked> 显示底图（对照描摹用）</label>
+      </div>
+
+      <label class="card slider-row">底图不透明度
+        <input id="underlayOpacity" type="range" min="0" max="100" value="50">
+      </label>
+      <div class="card tip">
+        <b>补充门窗：</b>识别只出墙体。点顶部「🚪 门」/「🪟 窗」，再点一下墙上位置即可（门 0.9m、窗 1.2m，放完可在右侧改宽度）。
+      </div>
+      <div class="card tip">
+        <b>当前户型：</b>你家（10.14 × 12.30m，层高 2.7m），已带上 5 件家具：真皮沙发、黑胡桃餐桌、岩板餐边柜、0.9m / 0.8m 书柜。图上虚线位置是玻璃隔断，可用「🪟 窗」贴上。
+      </div>
+      <div class="panel-head" style="margin-top:12px">快捷操作</div>
+      <button id="btnSample" class="ghost-btn full">🏠 载入我的户型（默认）</button>
+      <button id="btnFit" class="ghost-btn full">🔍 视图复位</button>
+      <div class="card tip" id="planStats"></div>
+    </div>
+
+    <!-- 方案 -->
+    <div class="panel" id="panel-saves">
+      <div class="panel-head">布局确定后存一份命名快照，随时载入对比</div>
+      <button id="btnSavePanel" class="primary-btn">💾 保存当前布局</button>
+      <div id="saveList"></div>
+      <div class="card tip">
+        <b>说明：</b>日常编辑会自动保存在本浏览器；「保存方案」是另存一份<b>命名快照</b>（户型 + 家具摆位 + 底图）。存多个方案后可以来回载入对比哪个搭配更好。
+      </div>
+    </div>
+
+    <!-- 帮助 -->
+    <div class="panel" id="panel-help">
+      <div class="card tip">
+        <b>使用流程</b>
+        <ol>
+          <li><b>导入户型：</b>「📐 户型」上传户型图（或把图片拖进画布）→ <b>自动识别墙体并生成房间</b>。尺寸不准就改「户型总宽」（填图上标注的尺寸合计，如 10.14 米），会按新比例重算。漏掉的墙用「🧱 画墙」补，多余的点「🗑️ 删除」，再点「🚪/🪟」补门窗。</li>
+          <li><b>录商品：</b>「＋添加商品」填名称、品类、长宽高（淘宝详情页都有）、上传商品图自动提色。</li>
+          <li><b>摆家具：</b>商品库点一下商品 → 画布上点击摆放；拖动移动，按 <b>R</b> 旋转 15°、<b>Q</b> 转 90°、<b>T</b> 转 180°，<b>Delete</b> 删除。选中家具可在右侧面板改参数实时看效果。</li>
+          <li><b>看间距：</b>画布顶部/左侧是<b>米制刻度尺</b>，地面铺 0.5m 细网格（1m 主线）；选中任意家具，会标出它<b>自身的宽/深</b>（靛蓝）、<b>到四面墙的净距</b>（蓝，「贴墙」为青色）以及<b>与相邻家具的净距</b>（琥珀，「贴着」为深琥珀）。<b>2D 与 3D 都在地面标注</b>，按 <b>M</b> 可随时开关。家具<b>不会穿墙、也不会叠放</b>：拖到墙里自动贴墙停住，撞到别的家具就停在边上；放置时位置被占会自动挪到最近的空位。</li>
+          <li><b>3D 墙体：</b>墙始终是真实的 <b>2.7m 全高</b>。工具栏「🧱 实心／半透／隐藏」控制环视时挡住视线的近侧墙怎么处理——实心最真实，半透能看到房间里，隐藏最通透。</li>
+          <li><b>存方案：</b>布局确定后点「💾 保存方案」存一份命名快照，「🗂 方案」里可随时载入、删除，多方案对比。</li>
+          <li><b>看效果：</b>切「3D 实景查看」，五种看法：<b>🎬 环视</b>（拖动旋转娃娃屋视角）、<b>🗺️ 俯视</b>、<b>🚶 走入</b>（站在房间里环顾）、<b>🌐 720°全景</b>（站定环顾、滚轮调视野）、<b>🎮 第一人称漫游</b>（WASD 走动，像在自己家逛）。<b>📸 高清出图</b>一键存 2 倍分辨率效果图。</li>
+          <li><b>买家具：</b>「📋 导出清单」生成搭配清单（数量、尺寸、价格合计）。</li>
+        </ol>
+      </div>
+      <div class="card tip">
+        <b>快捷键</b>
+        <ul>
+          <li>V / W / D / O / E：切换工具</li>
+          <li>R：旋转选中家具 15°（Shift 反向）</li>
+          <li>Q：旋转 90°（Shift 反向）· T：旋转 180°</li>
+          <li>M：显示/隐藏尺寸与到墙间距</li>
+          <li>Delete：删除选中家具</li>
+          <li>Esc：取消/取消选中</li>
+          <li>滚轮缩放，空格/中键拖动平移</li>
+        </ul>
+      </div>
+      <div class="card tip">
+        <b>说明</b><br>数据自动保存在本浏览器（localStorage），不上传服务器。商品图会压缩存储，建议每方案商品图 ≤ 30 张。<br>
+        3D 里会把商品图自动抠掉影棚背景、贴到家具正脸（沙发/柜门/书架），所以实物纹理和颜色与照片一致；商品图上若有「总宽xxxcm」这类标注，也会一起被贴上去，介意的可以换张干净图。
+      </div>
+    </div>
+  </aside>
+
+  <main id="stage">
+    <canvas id="c2d"></canvas>
+    <div id="c3d" class="hidden"></div>
+
+    <!-- 选中家具属性面板 -->
+    <div id="itemPanel" class="hidden">
+      <div class="ip-head">家具参数 <button id="ipClose">✕</button></div>
+      <div class="ip-body">
+        <label>名称<input id="ipName" type="text"></label>
+        <div class="row3">
+          <label>宽(cm)<input id="ipW" type="number" min="5"></label>
+          <label>深(cm)<input id="ipD" type="number" min="5"></label>
+          <label>高(cm)<input id="ipH" type="number" min="5"></label>
+        </div>
+        <div class="row2">
+          <label>颜色<input id="ipColor" type="color"></label>
+          <label>材质
+            <select id="ipMat">
+              <option value="fabric">布艺</option>
+              <option value="leather">皮质</option>
+              <option value="wood">木质</option>
+              <option value="metal">金属</option>
+            </select>
+          </label>
+        </div>
+        <div class="row2">
+          <label>角度(°)<input id="ipRot" type="number" min="0" max="359" step="1"></label>
+          <div class="rot-btns">
+            <button id="ipRot90" class="ghost-btn" title="快捷键 Q（Shift+Q 反向）">↻90°</button>
+            <button id="ipRot180" class="ghost-btn" title="快捷键 T">↻180°</button>
+          </div>
+        </div>
+        <div class="row2">
+          <button id="ipRotate" class="ghost-btn">↻ 旋转15°</button>
+          <button id="ipDelete" class="ghost-btn danger">🗑 删除</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="hint2d" class="canvas-hint">👉 从左侧「商品库」点选一个商品，或先用「🧱 画墙」画出户型<br>（滚轮缩放 · 空格拖动平移 · 快捷键见「帮助」）</div>
+    <div id="hint3d" class="canvas-hint3d hidden">🖱️ 左键拖动旋转 · 滚轮缩放 · 右键平移</div>
+  </main>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="js/color.js?v=20261111n"></script>
+<script src="js/trace.js?v=20261111n"></script>
+<script src="js/defaults.js?v=20261111n"></script>
+<script src="js/furniture3d.js?v=20261111n"></script>
+<script src="js/scene3d.js?v=20261111n"></script>
+<script src="js/editor2d.js?v=20261111n"></script>
+<script src="js/catalog.js?v=20261111n"></script>
+<script src="js/main.js?v=20261111n"></script>
+</body>
+</html>
